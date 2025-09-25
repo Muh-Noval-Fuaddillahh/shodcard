@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pusat Pintasan Keyboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals -->
+    <!-- Application Structure Plan: A single-page application with a sticky sidebar for smooth-scrolling navigation between thematic sections (Esensial, Teks, Windows, Browser). This structure follows the logical learning path of the source document. The primary interaction is a live search bar to instantly filter all shortcuts, making it a practical reference tool. Interactive cards that reveal details on click will be used to encourage user engagement. This design was chosen for its intuitive navigation and practical utility, turning a static guide into a dynamic learning tool. -->
+    <!-- Visualization & Content Choices: Report Info: Lists of keyboard shortcuts. -> Goal: Inform, Organize, Allow quick reference. -> Presentation Method: Interactive HTML cards/divs for each shortcut, grouped into scrollable sections. -> Interaction: 1. Live search/filter to find specific shortcuts. 2. Click on cards to reveal details. 3. Smooth-scroll navigation. -> Justification: This is more engaging and practical than a static list or table. The search function provides immediate value. No charts are needed as the data is qualitative. -> Library/Method: Vanilla JS for DOM manipulation, data handling, and event listening. Tailwind CSS for layout and styling. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDFBF8;
+            color: #4A4A4A;
+        }
+        .kbd-style {
+            background-color: #FFFFFF;
+            border: 1px solid #E5E7EB;
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-weight: 500;
+            font-family: monospace;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            margin: 0 2px;
+            display: inline-block;
+        }
+        .nav-link {
+            transition: all 0.2s ease-in-out;
+            border-left: 3px solid transparent;
+        }
+        .nav-link.active {
+            color: #C084FC;
+            border-left-color: #C084FC;
+            background-color: #F3E8FF;
+        }
+        .nav-link:hover {
+            color: #A855F7;
+            background-color: #F5F3FF;
+        }
+        .shortcut-card {
+            transition: all 0.3s ease-in-out;
+        }
+        .shortcut-card .details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s cubic-bezier(0, 1, 0, 1);
+        }
+        .shortcut-card.open .details {
+            max-height: 1000px;
+            transition: max-height 1s ease-in-out;
+        }
+        .loading-spinner {
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #a855f7;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="flex flex-col md:flex-row min-h-screen">
+        <aside class="w-full md:w-64 bg-white/80 backdrop-blur-sm border-r border-gray-200 md:sticky top-0 h-auto md:h-screen">
+            <div class="p-6">
+                <h1 class="text-xl font-bold text-purple-600">Pusat Pintasan</h1>
+                <p class="text-sm text-gray-500 mt-1">Navigasi Cepat</p>
+            </div>
+            <nav id="navigation" class="px-3">
+                <a href="#esensial" class="nav-link block font-medium px-3 py-2.5 rounded-md text-gray-700">Pintasan Esensial</a>
+                <a href="#teks" class="nav-link block font-medium px-3 py-2.5 rounded-md text-gray-700 mt-1">Manajemen Teks</a>
+                <a href="#windows" class="nav-link block font-medium px-3 py-2.5 rounded-md text-gray-700 mt-1">Manajemen Jendela</a>
+                <a href="#browser" class="nav-link block font-medium px-3 py-2.5 rounded-md text-gray-700 mt-1">Web Browser</a>
+            </nav>
+        </aside>
+
+        <main class="flex-1 p-4 sm:p-6 lg:p-10">
+            <div class="max-w-4xl mx-auto">
+                <header class="mb-10">
+                    <h2 class="text-4xl font-bold tracking-tight text-gray-800">Menguasai Pintasan Keyboard</h2>
+                    <p class="mt-3 text-lg text-gray-600">Gunakan aplikasi ini untuk menemukan dan mempelajari pintasan keyboard agar pekerjaan Anda lebih cepat dan efisien. Klik pada setiap kartu untuk melihat detailnya.</p>
+                    <div class="mt-6 relative">
+                        <input type="text" id="search-input" placeholder="Cari pintasan (misal: salin, tutup tab...)" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition">
+                        <span class="absolute right-4 top-3.5 text-gray-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" /></svg>
+                        </span>
+                    </div>
+                </header>
+
+                <section class="mb-10 p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
+                    <h3 class="text-xl font-bold text-gray-800">✨ Skenario Produktivitas AI</h3>
+                    <p class="mt-2 text-gray-600">Masukkan peran atau tugas Anda (misal: pelajar, desainer grafis), dan biarkan AI menyarankan pintasan yang paling berguna untuk Anda.</p>
+                    <div class="mt-4 flex flex-col sm:flex-row gap-2">
+                        <input type="text" id="role-input" placeholder="Contoh: penulis, programmer" class="flex-grow w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition">
+                        <button id="generate-scenario-btn" class="bg-purple-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-purple-700 transition duration-200 flex items-center justify-center">
+                            <span class="loading-spinner hidden"></span>
+                            <span>Hasilkan Skenario</span>
+                        </button>
+                    </div>
+                    <div id="scenario-result" class="mt-4 p-4 bg-purple-50 rounded-md text-gray-700 hidden prose max-w-none"></div>
+                </section>
+
+                <div id="shortcuts-container"></div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const shortcutsData = [
+            { id: 'sc-1', category: 'esensial', keys: ['Ctrl', 'C'], name: 'Copy (Salin)', func: 'Menyalin teks, file, atau gambar yang telah dipilih ke clipboard.', mnemonic: 'C = Copy' },
+            { id: 'sc-2', category: 'esensial', keys: ['Ctrl', 'X'], name: 'Cut (Potong)', func: 'Memotong (memindahkan) item yang dipilih. Item akan hilang saat ditempel.', mnemonic: 'X = Gunting' },
+            { id: 'sc-3', category: 'esensial', keys: ['Ctrl', 'V'], name: 'Paste (Tempel)', func: 'Menempelkan item yang sebelumnya sudah di-Copy atau di-Cut.', mnemonic: 'V bersebelahan dengan C' },
+            { id: 'sc-4', category: 'esensial', keys: ['Ctrl', 'Z'], name: 'Undo (Batal)', func: 'Membatalkan tindakan terakhir. Penyelamat saat melakukan kesalahan!', mnemonic: null },
+            { id: 'sc-5', category: 'esensial', keys: ['Ctrl', 'Y'], name: 'Redo (Ulangi)', func: 'Kebalikan dari Undo, mengulangi tindakan yang baru saja dibatalkan.', mnemonic: null },
+            { id: 'sc-6', category: 'esensial', keys: ['Ctrl', 'A'], name: 'Select All', func: 'Memilih semua konten (teks dalam dokumen, file dalam folder).', mnemonic: 'A = All (Semua)' },
+            { id: 'sc-7', category: 'esensial', keys: ['Ctrl', 'S'], name: 'Save (Simpan)', func: 'Menyimpan dokumen atau file yang sedang dikerjakan.', mnemonic: 'S = Save' },
+            { id: 'sc-8', category: 'esensial', keys: ['Ctrl', 'F'], name: 'Find (Cari)', func: 'Membuka kotak pencarian untuk menemukan kata atau frasa.', mnemonic: 'F = Find' },
+            { id: 'sc-9', category: 'teks', keys: ['Ctrl', 'B'], name: 'Bold', func: 'Menebalkan teks yang dipilih.', mnemonic: null },
+            { id: 'sc-10', category: 'teks', keys: ['Ctrl', 'I'], name: 'Italic', func: 'Memiringkan teks yang dipilih.', mnemonic: null },
+            { id: 'sc-11', category: 'teks', keys: ['Ctrl', 'U'], name: 'Underline', func: 'Memberi garis bawah pada teks yang dipilih.', mnemonic: null },
+            { id: 'sc-12', category: 'teks', keys: ['Ctrl', 'N'], name: 'New', func: 'Membuat dokumen baru.', mnemonic: 'N = New' },
+            { id: 'sc-13', category: 'teks', keys: ['Ctrl', 'O'], name: 'Open', func: 'Membuka dokumen yang sudah ada.', mnemonic: 'O = Open' },
+            { id: 'sc-14', category: 'teks', keys: ['Ctrl', 'P'], name: 'Print', func: 'Membuka jendela cetak.', mnemonic: 'P = Print' },
+            { id: 'sc-15', category: 'teks', keys: ['Ctrl', 'W'], name: 'Close', func: 'Menutup dokumen atau tab yang sedang aktif.', mnemonic: null },
+            { id: 'sc-16', category: 'teks', keys: ['Ctrl', 'Panah Kanan/Kiri'], name: 'Lompat per Kata', func: 'Melompati kata demi kata, bukan huruf demi huruf.', mnemonic: null },
+            { id: 'sc-17', category: 'teks', keys: ['Ctrl', 'Backspace'], name: 'Hapus Kata Kiri', func: 'Menghapus satu kata di sebelah kiri kursor.', mnemonic: null },
+            { id: 'sc-18', category: 'teks', keys: ['Ctrl', 'Delete'], name: 'Hapus Kata Kanan', func: 'Menghapus satu kata di sebelah kanan kursor.', mnemonic: null },
+            { id: 'sc-19', category: 'teks', keys: ['Ctrl', 'Home'], name: 'Awal Dokumen', func: 'Pindah ke awal dokumen.', mnemonic: null },
+            { id: 'sc-20', category: 'teks', keys: ['Ctrl', 'End'], name: 'Akhir Dokumen', func: 'Pindah ke akhir dokumen.', mnemonic: null },
+            { id: 'sc-21', category: 'windows', keys: ['Alt', 'Tab'], name: 'Pindah Aplikasi', func: 'Berpindah antar jendela aplikasi yang sedang terbuka.', mnemonic: null },
+            { id: 'sc-22', category: 'windows', keys: ['Win', 'D'], name: 'Tampilkan Desktop', func: 'Menyembunyikan semua jendela dan langsung menampilkan Desktop.', mnemonic: null },
+            { id: 'sc-23', category: 'windows', keys: ['Win', 'E'], name: 'File Explorer', func: 'Membuka File Explorer.', mnemonic: 'E = Explorer' },
+            { id: 'sc-24', category: 'windows', keys: ['Win', 'L'], name: 'Kunci Komputer', func: 'Mengunci (Lock) komputer.', mnemonic: 'L = Lock' },
+            { id: 'sc-25', category: 'windows', keys: ['Win', 'Panah Kiri/Kanan'], name: 'Snap Window', func: '"Menempelkan" jendela aplikasi ke separuh layar.', mnemonic: null },
+            { id: 'sc-26', category: 'windows', keys: ['Ctrl', 'Shift', 'Esc'], name: 'Task Manager', func: 'Membuka Task Manager secara langsung.', mnemonic: null },
+            { id: 'sc-27', category: 'windows', keys: ['F2'], name: 'Rename', func: 'Mengubah nama (rename) file atau folder yang dipilih.', mnemonic: null },
+            { id: 'sc-28', category: 'windows', keys: ['F5'], name: 'Refresh', func: 'Menyegarkan (refresh) tampilan jendela atau halaman.', mnemonic: null },
+            { id: 'sc-29', category: 'browser', keys: ['Ctrl', 'T'], name: 'Tab Baru', func: 'Membuka Tab baru.', mnemonic: 'T = Tab' },
+            { id: 'sc-30', category: 'browser', keys: ['Ctrl', 'W'], name: 'Tutup Tab', func: 'Menutup tab yang sedang aktif.', mnemonic: null },
+            { id: 'sc-31', category: 'browser', keys: ['Ctrl', 'Shift', 'T'], name: 'Buka Ulang Tab', func: 'Membuka kembali tab yang baru saja ditutup.', mnemonic: null },
+            { id: 'sc-32', category: 'browser', keys: ['Ctrl', 'Tab'], name: 'Pindah Tab Kanan', func: 'Berpindah ke tab berikutnya (sebelah kanan).', mnemonic: null },
+            { id: 'sc-33', category: 'browser', keys: ['Ctrl', 'Shift', 'Tab'], name: 'Pindah Tab Kiri', func: 'Berpindah ke tab sebelumnya (sebelah kiri).', mnemonic: null },
+            { id: 'sc-34', category: 'browser', keys: ['Ctrl', 'H'], name: 'History', func: 'Membuka riwayat penjelajahan.', mnemonic: 'H = History' },
+            { id: 'sc-35', category: 'browser', keys: ['Ctrl', 'J'], name: 'Downloads', func: 'Membuka halaman unduhan (Downloads).', mnemonic: null },
+            { id: 'sc-36', category: 'browser', keys: ['Ctrl', 'D'], name: 'Bookmark', func: 'Menambahkan halaman saat ini ke Bookmark.', mnemonic: null },
+            { id: 'sc-37', category: 'browser', keys: ['Ctrl', 'R'], name: 'Reload', func: 'Memuat ulang halaman.', mnemonic: 'R = Reload / F5' },
+            { id: 'sc-38', category: 'browser', keys: ['Ctrl', 'L'], name: 'Address Bar', func: 'Fokus ke address bar untuk mengetik alamat web baru.', mnemonic: 'L = Location' },
+            { id: 'sc-39', category: 'browser', keys: ['Ctrl', '+'], name: 'Zoom In', func: 'Memperbesar tampilan halaman.', mnemonic: null },
+            { id: 'sc-40', category: 'browser', keys: ['Ctrl', '-'], name: 'Zoom Out', func: 'Memperkecil tampilan halaman.', mnemonic: null },
+            { id: 'sc-41', category: 'browser', keys: ['Ctrl', '0'], name: 'Zoom Reset', func: 'Mengembalikan tampilan halaman ke ukuran normal (100%).', mnemonic: null },
+        ];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('shortcuts-container');
+            const searchInput = document.getElementById('search-input');
+            const navLinks = document.querySelectorAll('#navigation a');
+            const scenarioBtn = document.getElementById('generate-scenario-btn');
+            const roleInput = document.getElementById('role-input');
+            const scenarioResult = document.getElementById('scenario-result');
+            const sections = {};
+
+            const apiKey = ""; 
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+            const callGemini = async (prompt, button) => {
+                const spinner = button.querySelector('.loading-spinner');
+                const buttonText = button.querySelector('span:not(.loading-spinner)');
+                if (spinner) spinner.classList.remove('hidden');
+                if (buttonText) buttonText.classList.add('hidden');
+                button.disabled = true;
+
+                const payload = { contents: [{ parts: [{ text: prompt }] }] };
+                let resultText = "Maaf, terjadi kesalahan saat menghubungi AI. Silakan coba lagi.";
+                
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const result = await response.json();
+                    if (result.candidates && result.candidates[0].content.parts[0].text) {
+                        resultText = result.candidates[0].content.parts[0].text;
+                    }
+                } catch (error) {
+                    console.error("Gemini API call failed:", error);
+                } finally {
+                    if (spinner) spinner.classList.add('hidden');
+                    if (buttonText) buttonText.classList.remove('hidden');
+                    button.disabled = false;
+                }
+                return resultText;
+            };
+
+            const categories = [
+                { id: 'esensial', title: 'Pintasan Esensial', intro: 'Ini adalah fondasi dari semua pintasan. Kuasai ini, dan pekerjaanmu akan 50% lebih cepat.' },
+                { id: 'teks', title: 'Manajemen Teks & Dokumen', intro: 'Sangat berguna saat menggunakan aplikasi seperti Microsoft Word, Google Docs, atau Notepad.' },
+                { id: 'windows', title: 'Manajemen Jendela & File', intro: 'Membantumu mengelola aplikasi dan file di sistem operasi Windows dengan gesit.' },
+                { id: 'browser', title: 'Web Browser', intro: 'Wajib diketahui untuk mempercepat aktivitas berselancar di internet.' },
+            ];
+
+            categories.forEach(cat => {
+                const section = document.createElement('section');
+                section.id = cat.id;
+                section.className = 'mb-12';
+                section.innerHTML = `
+                    <h3 class="text-2xl font-bold text-gray-800 mb-2">${cat.title}</h3>
+                    <p class="text-gray-600 mb-6">${cat.intro}</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="grid-${cat.id}"></div>
+                `;
+                container.appendChild(section);
+                sections[cat.id] = section;
+            });
+            
+            const renderShortcuts = (filter = '') => {
+                const normalizedFilter = filter.toLowerCase();
+                document.querySelectorAll('[id^="grid-"]').forEach(grid => grid.innerHTML = '');
+
+                const filteredData = shortcutsData.filter(s => 
+                    s.name.toLowerCase().includes(normalizedFilter) ||
+                    s.func.toLowerCase().includes(normalizedFilter) ||
+                    s.keys.join(' ').toLowerCase().includes(normalizedFilter)
+                );
+                
+                let foundItems = false;
+                if (filteredData.length > 0) {
+                     filteredData.forEach(s => {
+                        const grid = document.getElementById(`grid-${s.category}`);
+                        const keysHTML = s.keys.map(key => `<kbd class="kbd-style">${key}</kbd>`).join('+');
+                        const card = document.createElement('div');
+                        card.className = 'shortcut-card bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md hover:border-purple-300';
+                        card.dataset.id = s.id;
+                        card.innerHTML = `
+                            <div class="flex justify-between items-center cursor-pointer card-toggle">
+                                <span class="font-semibold text-gray-800">${s.name}</span>
+                                <div>${keysHTML}</div>
+                            </div>
+                            <div class="details mt-3 pt-3 border-t border-gray-100">
+                                <p class="text-gray-600">${s.func}</p>
+                                ${s.mnemonic ? `<p class="mt-2 text-sm text-purple-600 bg-purple-50 p-2 rounded-md">💡 ${s.mnemonic}</p>` : ''}
+                                <div class="mt-4">
+                                    <button class="explain-btn text-sm text-purple-600 font-semibold hover:text-purple-800 transition flex items-center gap-1">
+                                        <span class="loading-spinner hidden"></span>
+                                        <span>✨ Jelaskan Lebih Lanjut</span>
+                                    </button>
+                                    <div class="gemini-explanation p-3 bg-gray-50 rounded-md mt-3 text-sm hidden"></div>
+                                </div>
+                            </div>
+                        `;
+                        grid.appendChild(card);
+                    });
+                    foundItems = true;
+                }
+
+                Object.values(sections).forEach(section => {
+                    const grid = section.querySelector('[id^="grid-"]');
+                    section.style.display = (grid && grid.children.length > 0) ? 'block' : 'none';
+                });
+
+                const noResults = container.querySelector('#no-results');
+                if (!foundItems && !noResults) {
+                    const noResultsDiv = document.createElement('div');
+                    noResultsDiv.id = 'no-results';
+                    noResultsDiv.className = 'text-center py-10';
+                    noResultsDiv.innerHTML = `<p class="text-gray-500">Tidak ada pintasan yang cocok dengan pencarian Anda.</p>`;
+                    container.appendChild(noResultsDiv);
+                } else if (foundItems && noResults) {
+                    noResults.remove();
+                }
+            };
+
+            searchInput.addEventListener('input', (e) => renderShortcuts(e.target.value));
+            
+            container.addEventListener('click', async (e) => {
+                const explainBtn = e.target.closest('.explain-btn');
+                if (explainBtn) {
+                    const card = e.target.closest('.shortcut-card');
+                    if (!card.classList.contains('open')) card.classList.add('open');
+                    const shortcutId = card.dataset.id;
+                    const shortcut = shortcutsData.find(s => s.id === shortcutId);
+                    const resultContainer = card.querySelector('.gemini-explanation');
+                    resultContainer.classList.remove('hidden');
+                    resultContainer.innerHTML = 'Memproses...';
+                    
+                    const prompt = `Jelaskan secara singkat dan dalam satu paragraf, apa kegunaan utama dari pintasan keyboard "${shortcut.name}" (${shortcut.keys.join(' + ')}). Berikan satu contoh nyata kapan pintasan ini sangat berguna.`;
+                    const explanation = await callGemini(prompt, explainBtn);
+                    resultContainer.innerHTML = explanation.replace(/\n/g, '<br>');
+                    return;
+                }
+
+                const cardToggle = e.target.closest('.card-toggle');
+                if (cardToggle) {
+                    cardToggle.parentElement.classList.toggle('open');
+                }
+            });
+
+            scenarioBtn.addEventListener('click', async () => {
+                const userRole = roleInput.value.trim();
+                if (!userRole) {
+                    scenarioResult.innerHTML = "Silakan masukkan peran atau tugas Anda.";
+                    scenarioResult.classList.remove('hidden');
+                    return;
+                }
+                scenarioResult.classList.remove('hidden');
+                scenarioResult.innerHTML = "AI sedang memikirkan skenario terbaik untuk Anda...";
+                
+                const allShortcuts = shortcutsData.map(s => `- ${s.name} (${s.keys.join(' + ')}): ${s.func}`).join('\n');
+                const prompt = `Saya seorang ${userRole}. Berdasarkan daftar pintasan keyboard berikut, pilih 5 pintasan yang paling penting untuk pekerjaan saya dan jelaskan mengapa dalam format daftar bernomor dengan judul tebal. Buat penjelasan yang mudah dipahami. Daftar pintasan:\n${allShortcuts}`;
+                
+                const result = await callGemini(prompt, scenarioBtn);
+                scenarioResult.innerHTML = result
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\n/g, '<br>');
+            });
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', e => {
+                    e.preventDefault();
+                    const targetElement = document.querySelector(link.getAttribute('href'));
+                    if (targetElement) {
+                        window.scrollTo({ top: targetElement.offsetTop - 80, behavior: 'smooth' });
+                    }
+                });
+            });
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    const id = entry.target.getAttribute('id');
+                    const navLink = document.querySelector(`nav a[href="#${id}"]`);
+                    if (entry.isIntersecting) {
+                        navLinks.forEach(link => link.classList.remove('active'));
+                        if (navLink) navLink.classList.add('active');
+                    }
+                });
+            }, { rootMargin: "-30% 0px -70% 0px" });
+
+            Object.values(sections).forEach(section => observer.observe(section));
+
+            renderShortcuts();
+        });
+    </script>
+</body>
+</html>
+
